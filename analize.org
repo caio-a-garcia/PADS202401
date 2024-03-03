@@ -1,0 +1,29 @@
+* Atividade Integradora 202401
+A presente analize eh feita como parte do terceiro trimestre do /Programa Avancado em Data Science e Tomada de Decisao/ (PADS). Os [[./Dados - Olist/][dados]] analizados sao referentes aa empresa [[https://olist.com/][Olist]].
+** Logs
+Relatos de analizes feitas no prompt, ou que por outro motivo nao estao registradas nos arquivos =.qmd= referentes ao assunto analizado.
+*** ID do pedido em =order_reviews= e =orders=
+Algumas obesrvacoes em =order_reviews= tem =order_id= nao-unicos, indicando alguns pedidos para os quais ha mais de um review.
+#+begin_src R
+  > order_reviews |> unique() |> count()
+  # A tibble: 1 x 1
+           n
+  <int>
+  [1] 99224
+
+  > order_reviews$order_id |> unique() |> length()
+  [1] 98673
+
+  
+  > sum(!complete.cases(order_reviews$order_id))
+  [1] 0
+#+end_src
+
+Na tabela de pedidos cada observacao tem um ID unico, como esperado.
+#+begin_src R
+  > orders$order_id |> unique() |> length()
+  [1] 99441
+    
+  > orders$order_id |> length()
+  [1] 99441
+#+end_src

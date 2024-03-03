@@ -1,0 +1,70 @@
+---
+title: "Analize Exploratoria - Olist"
+author: "Caio Garcia"
+format:
+  html:
+    code-fold: true
+---
+
+```{.r .code-cell}
+library("tidyverse")
+library("ggplot2")
+library("naniar")
+library("forcats")
+```
+
+```{.r .code-cell}
+customers <- readr::read_csv("Dados - Olist/olist_customers_dataset.csv")
+order_payments <- readr::read_csv("Dados - Olist/olist_order_payments_dataset.csv")
+products <- readr::read_csv("Dados - Olist/olist_products_dataset.csv")
+geolocation <- readr::read_csv("Dados - Olist/olist_geolocation_dataset.csv")
+order_reviews <- readr::read_csv("Dados - Olist/olist_order_reviews_dataset.csv")
+sellers <- readr::read_csv("Dados - Olist/olist_sellers_dataset.csv")
+order_items <- readr::read_csv("Dados - Olist/olist_order_items_dataset.csv")
+orders <- readr::read_csv("Dados - Olist/olist_orders_dataset.csv")
+product_category_name_translation <- readr::read_csv("Dados - Olist/product_category_name_translation.csv")
+```
+
+
+```{.r .cell-code}
+summary(order_reviews)
+```
+
+```{.r .cell-code}
+ggplot(order_reviews, aes(x = review_score)) +
+          geom_freqpoly(bins=5)
+```
+
+```{.r .cell-code}
+one_star_reviews <- order_reviews[order_reviews$review_score==1])
+```
+
+```{.r .cell-code}
+merge(orders, order_reviews, by = "order_id") |>
+    merge(customers, by = "customer_id") |>
+    select(order_id, order_purchase_timestamp, review_score, customer_state) |>
+    dplyr::mutate(
+               data = as.Date(order_purchase_timestamp),
+               data = lubridate::floor_date(data, "month")) |>
+    # dplyr::count(data, customer_state) |>
+    ggplot() +
+    aes(x = data, y = review_score, colour = customer_state) +
+    geom_line(size = 0.5, fun = "mean") +
+    scale_color_viridis_d(begin = 0, end = 1) +
+    labs(
+        x = "Data",
+        y = "Qualidade dos Reviews",
+        # title = "São Paulo tem mais vendas",
+        # subtitle = "O que é esperado, pois a população é maior 😬",
+        caption = "Fonte: Olist",
+        color = "Estado"
+    ) +
+    scale_x_date(
+        date_breaks = "3 month",
+        date_labels = "%b\n%Y"
+    ) +
+    theme_light(15) +
+    theme(
+        legend.position = "bottom"
+    )
+```
