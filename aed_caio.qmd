@@ -13,6 +13,8 @@ library("naniar")
 library("forcats")
 ```
 
+# Inicializacao
+
 ```{.r .code-cell}
 customers <- readr::read_csv("Dados - Olist/olist_customers_dataset.csv")
 order_payments <- readr::read_csv("Dados - Olist/olist_order_payments_dataset.csv")
@@ -26,19 +28,17 @@ product_category_name_translation <- readr::read_csv("Dados - Olist/product_cate
 ```
 
 
-```{.r .cell-code}
-summary(order_reviews)
-```
+# Reviews
 
 ```{.r .cell-code}
 ggplot(order_reviews, aes(x = review_score)) +
           geom_freqpoly(bins=5)
 ```
 
-```{.r .cell-code}
-one_star_reviews <- order_reviews[order_reviews$review_score==1])
-```
+Os reviews de 3 a 5 pontos seguem uma progrecao geometrica, e ha um pico de reviews de 1 ponto comparado aos com 2 pontos. Hipotese: *reviews de 1 ponto indicam problemas qualitativamente diferentes de reviews com 3 ou mais pontos*.
 
+
+## Prototipo
 ```{.r .cell-code}
 merge(orders, order_reviews, by = "order_id") |>
     merge(customers, by = "customer_id") |>
@@ -54,8 +54,6 @@ merge(orders, order_reviews, by = "order_id") |>
     labs(
         x = "Data",
         y = "Qualidade dos Reviews",
-        # title = "São Paulo tem mais vendas",
-        # subtitle = "O que é esperado, pois a população é maior 😬",
         caption = "Fonte: Olist",
         color = "Estado"
     ) +
@@ -68,3 +66,26 @@ merge(orders, order_reviews, by = "order_id") |>
         legend.position = "bottom"
     )
 ```
+
+```{.r .cell-code}
+merge(order_items, sellers, by = "seller_id")
+```
+
+# Vendas e compras por estado
+
+```{.r .cell-code}
+merge(order_items, sellers, by = "seller_id") |>
+    group_by(seller_state) |>
+    summarise(total_count=n()) |>
+    print(n = 26)
+```
+Mais de 70% dos itens vendidos saem do estado de Sao Paulo.
+
+```{.r .cell-code}
+merge(order_items, orders, by = "order_id") |>
+    merge(customers, by = "customer_id") |>
+    group_by(customer_state) |>
+    summarise(total_count=n()) |>
+    print(n=26)
+```
+O estado do Rio de Janeiro tem o maior deficit de vendas vs compras dentre todos os estados brasileiros.

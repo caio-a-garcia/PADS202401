@@ -1,0 +1,106 @@
+---
+title: "Lista de Exercicios - Olist"
+author: "Caio Garcia"
+format:
+  html:
+    code-fold: true
+---
+
+# Inicializacao
+
+```{.r .code-cell}
+library("tidyverse")
+library("ggplot2")
+library("naniar")
+library("forcats")
+```
+
+```{.r .code-cell}
+customers <- readr::read_csv("Dados - Olist/olist_customers_dataset.csv")
+order_payments <- readr::read_csv("Dados - Olist/olist_order_payments_dataset.csv")
+products <- readr::read_csv("Dados - Olist/olist_products_dataset.csv")
+geolocation <- readr::read_csv("Dados - Olist/olist_geolocation_dataset.csv")
+order_reviews <- readr::read_csv("Dados - Olist/olist_order_reviews_dataset.csv")
+sellers <- readr::read_csv("Dados - Olist/olist_sellers_dataset.csv")
+order_items <- readr::read_csv("Dados - Olist/olist_order_items_dataset.csv")
+orders <- readr::read_csv("Dados - Olist/olist_orders_dataset.csv")
+product_category_name_translation <- readr::read_csv("Dados - Olist/product_category_name_translation.csv")
+```
+
+
+# Lista de Perguntas
+
+1. Quantas linhas temos na tabela 'olist_orders_dataset.csv'?
+2. Quantas linhas temos na tabela 'olist_order_items_dataset.csv'?
+3. Quantas linhas temos na tabela 'olist_customers_dataset.csv'?
+4. Quantas linhas temos na tabela 'olist_sellers_dataset.csv'?
+5. Quantas linhas temos na tabela 'olist_products_dataset.csv'?
+6. Quantas linhas temos na tabela 'olist_order_payments_dataset.csv'?
+7. Quantas linhas temos na tabela 'olist_order_reviews_dataset.csv'?
+8. Quantas linhas temos na tabela 'olist_geolocation_dataset.csv'?
+9. Quantos CEPS unicos temos no banco de dados?
+10. Quantas latitudes e longitudes estÃ£o expressas na base de dados?
+11. Crie um metodo para agrupar todas as diferentes latitudes e longitudes que um determinado CEP possui para um valor unico por CEP. Dica Use a funcao group_by e aggragate
+12. Crie um metodo para agregar todas as tabelas disponiveis em uma unica tabela.
+13. Quantas ordens distintas temos em nosso banco de dados?
+14. Quantos clientes dististos existem em nosso banco de dados?
+15. Quantos vendedores distintos existem em nosso bando de dados?
+16. Qual a porcentagem de vendas feitas com cartao de credito?
+17. Qual a porcentagem de vendas feitas com cartao de debito?
+18. Qual a porcentagem de reviews menor do que 2 estreles temos em nossa base?
+19. Quantas categorias de produto distintas existem em nossa base?
+20. Qual a media de scores por categoria de produto?
+21. Quais as 5 categorias que mais possuem produtos em nossa base?
+22. Quantos comentarios existem na base?
+23. Crie uma nuvem de palavras que mostre as principais informacoes contidadas nos comentarios.
+24. Qual a porcentagem de ordens entregues?
+25. Qual o tempo medio entre a compra e a aprovacao da compra?
+26. Qual o tempo medio entre a compra e a entrega?
+27. Qual a diferenca media entre a data prevista de entrega e a data efetiva de entrega?
+28. Em qual periodo do dia as pessoas mais costumam fazer compras por estado? Divida entre manha, tarde e noite.
+29. Quais os diferentes tipos de dados temos em nossa tabela?
+30. Quantos clientes distintos temos por estado?
+31. Quantos vendedores distintos temos por estado?
+32. Quantos clientes distintos temos na regiao metropolitana de Sao Paulo?
+33. Qual a media de valor, por estado, que os clientes atribuem aos vendedores?
+34. Qual o valor medio de frete cobrado por estado? 
+35. Trace um histograma de precos divididos em 4 quantis.
+36. Trace um histograma de precos divididos em 10 quantis.
+37. Qual a porcentagem de vendas eh feita no estado de Sao Paulo e estao no primeiro quartil?
+38. Qual o valor medio das compras no primeiro quantil?
+39. Considerando uma base de 6.000.000 de clientes na Olist, qual a quantidade de clientes no primeiro quartil e de Sao Paulo podemos atingir?
+40. Qual o TAM (Tamanho de Mercado) no contexto descrito anteriormente?
+
+# 1-8 quantidades de linhas
+```{.r .cell-code}
+stopifnot(dim(orders)[1] == 99441)
+```
+
+```{.r .cell-code}
+stopifnot(dim(customers)[1] == 99441)
+```
+
+```{.r .cell-code}
+stopifnot(dim(order_payments)[1] == 103886)
+```
+
+```{.r .cell-code}
+stopifnot(dim(products)[1] == 32951)
+```
+
+```{.r .cell-code}
+stopifnot(dim(geolocation)[1] == 1000163)
+```
+
+```{.r .cell-code}
+stopifnot(dim(order_reviews)[1] == 99224)
+```
+
+```{.r .cell-code}
+stopifnot(dim(sellers)[1] == 3095)
+```
+
+```{.r .cell-code}
+stopifnot(dim(order_items)[1] == 112650)
+```
+
