@@ -1,0 +1,31 @@
+Persona: Fluminense
+Foco: compras no estado do RJ
+
+atraso maior que ZERO (produto entregado depois da data prevista)
+
+Compram de SP (66%), apesar de o RJ ter um frete menor (12 contra 20) e as reviews serem menores em SP e o preço médio dos produtos mais vendidos serem menores no RJ (maiores ofertas no RJ)
+ - Venda de SP para o RJ que tem review 1 representa 13%
+ - Tempo médio de entrega do SP (25 dias) é maior do que a do RJ (15 dias)
+ - Mais de metade dos produtos que possuem atraso maior do que ZERO tem review 1
+ - SP representa 12% das vendas com atraso maior que ZERO
+
+Maiores reclamações são de problemas de entrega (atraso, não entrega ou entrega errada)
+
+Consumidores compram:
+- mais produtos para casa (cama, mesa e banho; moveis e decoração), corpo (beleza e saúde; esporte e lazer) e informatica e UD
+- à tarde
+- em março, maio e julho (baixas compras entre set e dez, com um leve pico em nov)
+- em menor volume nos fins de semana
+- tem perfil de tipo de pagamento semelhante a media brasileira
+- Cama, mesa e banho em jul e nov
+
+
+
+Inferências
+Não tem preocupação com preço
+Tem tolerância a um tempo de entrega alto, mas com baixa tolerância a atrasos
+Tem preocupação com a qualidade da entrega
+tem preocupacao com a casa
+tem preocupação com aparência, mas em menor importância que o resto do país (não se arruma para sair e pratica esportes na praia)
+
+
