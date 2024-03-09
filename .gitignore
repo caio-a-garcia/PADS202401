@@ -3,3 +3,6 @@
 .#*
 *.csv
 Dados - Olist/
+.env/
+*.html
+*_files/
