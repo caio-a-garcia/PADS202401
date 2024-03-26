@@ -1,0 +1,306 @@
+---
+title: "Análise Base Olist"
+author: "Grupo 2"
+format: revealjs
+jupyter: python3
+---
+
+```{python}
+import os
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+customers = pd.read_csv("Dados - Olist/olist_customers_dataset.csv")
+geolocation = pd.read_csv("Dados - Olist/olist_geolocation_dataset.csv")
+orders = pd.read_csv("Dados - Olist/olist_orders_dataset.csv")
+order_items = pd.read_csv("Dados - Olist/olist_order_items_dataset.csv")
+order_payments = pd.read_csv("Dados - Olist/olist_order_payments_dataset.csv")
+order_reviews = pd.read_csv("Dados - Olist/olist_order_reviews_dataset.csv")
+products = pd.read_csv("Dados - Olist/olist_products_dataset.csv")
+sellers = pd.read_csv("Dados - Olist/olist_sellers_dataset.csv")
+```
+
+```{python}
+# Transformando as colunas de data (de object para data)
+orders['order_purchase_timestamp'] = pd.to_datetime(orders['order_purchase_timestamp'])
+orders['order_estimated_delivery_date'] = pd.to_datetime(orders['order_estimated_delivery_date'])
+orders['order_delivered_customer_date'] = pd.to_datetime(orders['order_delivered_customer_date'])
+orders['order_approved_at'] = pd.to_datetime(orders['order_approved_at'])
+orders['order_delivered_carrier_date'] = pd.to_datetime(orders['order_delivered_carrier_date'])
+
+
+orders['prazo_estimado'] = (orders['order_estimated_delivery_date'] - orders['order_approved_at']).dt.days
+orders['prazo_realizado'] = (orders['order_delivered_customer_date'] - orders['order_approved_at']).dt.days
+orders['atraso'] = (orders['order_delivered_customer_date'] - orders['order_estimated_delivery_date']).dt.days
+
+```
+
+```{python}
+# 11 Crie um metodo para agrupar todas as diferentes latitudes e longitudes que um determinado CEP
+# possui para um valor unico por CEP. Dica Use a funcao group_by e aggragate
+geolocation_agrupado = geolocation.groupby('geolocation_zip_code_prefix').agg({'geolocation_lat':'mean', 'geolocation_lng':'mean'}).reset_index()
+```
+
+```{python}
+# 12 mesclando os dataframes
+#Mesclando os df de orders e customers
+df = pd.merge(orders, customers, on='customer_id', how='left')
+#Mesclando os df de orders e items
+df = pd.merge(df, order_items, on='order_id', how='left')
+#Mesclando os df de orders e sellers
+df = pd.merge(df, sellers, on='seller_id', how='left')
+#Mesclando os df de orders e payments
+df = pd.merge(df, order_payments, on='order_id', how='left')
+#Mesclando os df de orders e reviews
+df = pd.merge(df, order_reviews, on='order_id', how='left')
+#Mesclando os df de orders e products
+df = pd.merge(df, products, on='product_id', how='left')
+#Mesclando os df de orders e geolocation (customer = geolocation_zip_code_prefix_x)
+df = pd.merge(df, geolocation_agrupado, left_on='customer_zip_code_prefix', right_on='geolocation_zip_code_prefix' , how='left')
+```
+
+```{python}
+# Criar um dataframe com os dados de compras de clientes do RJ
+df_rj = df[df['customer_state'] == 'RJ']
+```
+
+# A Oportunidade
+## A Balança Comercial Fluminense
+O estado do Rio de Janeiro tem\
+4818 vendas registradas para 14579 compras.
+
+```{python}
+#Quantidade de vendas por estado
+vendas_estado = df['seller_state'].value_counts()
+# conveter para dataframe
+vendas_estado = vendas_estado.reset_index()
+vendas_estado.columns = ['Estado', 'Vendas']
+#quantidade de compras por estado
+compras_estado = df['customer_state'].value_counts()
+# conveter para dataframe
+compras_estado = compras_estado.reset_index()
+compras_estado.columns = ['Estado', 'Compras']
+
+#Mescar os dataframes
+df_compra_venda = pd.merge(compras_estado, vendas_estado, on='Estado', how='left')
+
+cores = ['#a5cee2','#1f78b4']
+
+# Grafico com a quantidade de compras e vendas por estado do df_compra_venda
+fig, ax = plt.subplots()
+df_compra_venda.plot(kind='bar', x='Estado', y=['Vendas', 'Compras'], ax=ax, color=cores)
+ax.set_ylabel('Quantidade')
+ax.set_xlabel('Estado')
+ax.set_title('Quantidade de compras e vendas por estado')
+plt.show()
+```
+
+## O RJ na Economia Nacional
+
+```{python}
+# Dados do PIB por estado para o ano de 2018 com siglas
+dados = {
+    'Estado': [
+        'AM', 'RR', 'MT', 'SC', 'RO', 'ES', 'PA', 'MA', 'MS', 'BA', 'AP', 'PI', 
+        'TO', 'RS', 'PE', 'RN', 'DF', 'SP', 'CE', 'GO', 'MG', 'PR', 'PB', 'AL', 
+        'RJ', 'AC', 'SE'
+    ],
+    'Valor': [
+        100.11, 13.37, 137.44, 298.23, 44.91, 137.02, 161.35, 98.18, 106.97,
+        286.24, 16.80, 50.38, 35.67, 457.29, 186.35, 66.97, 254.82, 2210.56,
+        155.90, 195.68, 614.88, 440.03, 64.37, 54.41, 758.86, 15.33, 42.02
+    ]
+}
+
+# Convertendo os dados para um DataFrame do pandas e ordenando
+df_pib = pd.DataFrame(dados)
+df_pib.sort_values('Valor', ascending=False, inplace=True)
+
+# Definindo as cores para as barras, com a barra do RJ em uma cor diferente
+cores = ['#a5cee2' if estado != 'RJ' else '#1f78b4' for estado in df_pib['Estado']]
+
+# Criando o gráfico de barras
+plt.figure(figsize=(14, 5))
+bars = plt.bar(df_pib['Estado'], df_pib['Valor'], color=cores)
+plt.ylabel('PIB Corrente (em bilhões de reais)')
+plt.xticks(rotation=45)
+
+# Adicionando os rótulos de valor em cada barra, dividindo por 1000 para converter em trilhões
+for bar in bars:
+    yval = bar.get_height()
+   # plt.text(bar.get_x() + bar.get_width()/2, yval + 5, f'{yval/1000:.2f}', ha='center', va='bottom')
+
+plt.title('PIB Corrente por Estado do Brasil - 2018')
+plt.show()
+```
+
+# O Trabalho a Ser Feito
+## RJ compra de SP
+
+```{python}
+# Grafico de barras com a participação dos estados vendedores no df_rj ordenado do maior para o menor. Colocar um título e um label para o eixo x e eixo y
+top_5_estados = df_rj['seller_state'].value_counts().head(5).index
+df_rj_top_5 = df_rj[df_rj['seller_state'].isin(top_5_estados)]
+estados_vendedores = df_rj_top_5['seller_state'].value_counts(normalize=True)*100
+estados_vendedores.plot(kind='bar')
+plt.title('Participação dos estados vendedores no RJ')
+plt.xlabel('Estado')
+plt.ylabel('Participação em Vendas para o RJ')
+plt.show()
+```
+
+## Melhor experiência do consumidor
+
+```{python}
+df_rj = df[df['customer_state'] == 'RJ']
+
+top_5_estados = df_rj['seller_state'].value_counts().head(5).index
+df_rj_top_5 = df_rj[df_rj['seller_state'].isin(top_5_estados)]
+
+df_grafico_review = df_rj_top_5.groupby('seller_state')['review_score'].mean().sort_values(ascending=False)
+
+
+df_grafico_review.head()
+
+# Definir a lista de cores
+cores = ['#1f78b4', '#1f78b4']
+
+# Selecionar os estados que você deseja colorir
+estados_selecionados = ['SP', 'RJ']
+
+# Mapear as cores para os estados
+mapa_cores = dict(zip(estados_selecionados, cores))
+
+df_grafico_review.plot(kind='bar',
+                     color=[mapa_cores.get(estado,'#a5cee2')
+                            for estado 
+                            in df_grafico_review.index])
+
+plt.title('Review médio por estado vendedor no RJ')
+plt.show()
+```
+
+## Melhor experiência do consumidor
+
+```{python}
+# Grafico com Percentual das vendas com reviews de nota 1 por estados no df_rj. Considerar somente os top 5 estados com mais vendas. Destacar a barra do estado de SP com uma cor diferente
+df_rj['review_score_1'] = np.where(df_rj['review_score'] == 1, 1, 0)
+df_rj.groupby('customer_state')['review_score_1'].mean().sort_values(ascending=False)
+
+top_5_estados = df_rj['seller_state'].value_counts().head(5).index
+df_rj_top_5 = df_rj[df_rj['seller_state'].isin(top_5_estados)]
+review_1_estado = df_rj_top_5.groupby('seller_state')['review_score_1'].mean().sort_values(ascending=False)*100
+
+plt.bar(review_1_estado.index, review_1_estado.values, color='#a5cee2' )
+
+indice_destacado =  review_1_estado.index.get_loc('SP')
+cores = ['#a5cee2'  if i != indice_destacado else '#1f78b4' for i in range(len(review_1_estado.index))]
+plt.bar(review_1_estado.index[indice_destacado], review_1_estado.values[indice_destacado], color=cores[indice_destacado])
+plt.title('Percentual de Vendas com Review 1 por Estado')
+
+plt.show()
+```
+
+## Entregas de SP atrasam com frequência
+
+```{python}
+# Grafico com o percentual de atraso maior do que 0 em relação ao total de vendas por estado de origem no df_rj, ordenado do maior para o menor. Considere somente os top 5 estados que mais vendem
+top_5_estados = df_rj['seller_state'].value_counts().head(5).index
+df_rj_top_5 = df_rj[df_rj['seller_state'].isin(top_5_estados)]
+atraso_estado = df_rj_top_5[df_rj_top_5['atraso'] > 0]['seller_state'].value_counts()/df_rj_top_5['seller_state'].value_counts()*100
+atraso_estado = atraso_estado.sort_values(ascending=False)
+
+plt.bar(atraso_estado.index, atraso_estado.values, color='#a5cee2')
+
+indice_destacado =  atraso_estado.index.get_loc('SP')
+
+cores = ['#a5cee2' if i != indice_destacado else '#1f78b4' for i in range(len(atraso_estado.index))]
+plt.bar(atraso_estado.index[indice_destacado], atraso_estado.values[indice_destacado], color=cores[indice_destacado])
+plt.title('Percentual de Entregas Atrasadas por Estado')
+
+plt.show()
+```
+
+## Potencial redução no preço pelo frete
+O frete interno ao RJ é 40% mais barato em média que o frete de SP para RJ
+
+```{python}
+# Faça o gráfico do custo médio do frete por estado no df_rj. Considere o top 5 estados com maior valor de vendas
+top_5_estados = df_rj['seller_state'].value_counts().head(5).index
+df_rj_top_5 = df_rj[df_rj['seller_state'].isin(top_5_estados)]
+frete_estado = df_rj_top_5.groupby('seller_state')['freight_value'].mean().sort_values(ascending=False)
+frete_estado = frete_estado.sort_values(ascending=False)
+
+
+plt.bar(frete_estado.index, frete_estado.values, color='#a5cee2')
+
+
+indice_destacado =  frete_estado.index.get_loc('SP')
+#cores = ['#a5cee2' if i != indice_destacado else '#1f78b4' for i in range(len(frete_estado.index))]
+cores = ['#1f78b4', '#1f78b4']
+plt.bar(frete_estado.index[indice_destacado], frete_estado.values[indice_destacado], color=cores)
+#[indice_destacado])
+plt.title('Custo Médio do Frete por Estado')
+
+
+plt.show()
+```
+
+# Por Onde Começar
+## Principais categorias vendidas no RJ
+
+```{python}
+#Grafico com a participação dos 10 maiores produtos vendidos para o RJ com titulo
+df_rj['product_category_name'].value_counts(normalize=True).head(10).plot(kind='bar')
+plt.title('10 maiores produtos vendidos para o RJ')
+plt.show()
+```
+
+## Principais categorias entre RJ e SP
+
+```{python}
+#Volume de VENDAS de RJ para Brasil POR CATEGORIA TOP_5
+VRJ = df[(df['seller_state'] == 'RJ')].groupby('product_category_name')['order_id'].nunique().sort_values(ascending=False).head(5)
+
+#Volume de VENDAS de SP para RJ POR CATEGORIA TOP_5
+VSP_CRJ = df[(df['seller_state'] == 'SP') & (df['customer_state'] == 'RJ')].groupby('product_category_name')['order_id'].nunique().sort_values(ascending=False).head(5)
+
+#Categorias vendidas pelos vendedores do RJ para os clientes do RJ
+VRJ_CRJ = df[(df['seller_state'] == 'RJ') & (df['customer_state'] == 'RJ')].groupby('product_category_name')['order_id'].nunique().sort_values(ascending=False).head(5)
+
+#Unir os 2 dataframes removendo categorias com volume nulo
+VSP_CRJ = VSP_CRJ.reset_index()
+VRJ_CRJ = VRJ_CRJ.reset_index()
+VSP_CRJ = VSP_CRJ.merge(VRJ_CRJ, on='product_category_name', how='inner')
+VSP_CRJ.columns = ['product_category_name', 'VSP_CRJ', 'VRJ_CRJ']
+#VSP_CRJ
+#plotar gráfico barras VSP_CRJ
+#VSP_CRJ.plot(x='product_category_name', y=['VSP_CRJ', 'VRJ_CRJ'], kind='bar', figsize=(10, 5))
+#plt.title('Volume de vendas de SP para RJ por categoria')
+#plt.show()
+
+#Plotar a base VSP_CRJ utilizando seaborn
+sns.set(style="whitegrid")
+VSP_CRJ = VSP_CRJ.melt('product_category_name', var_name='Volume', value_name='Vendas')
+plt.figure(figsize=(10, 5))
+sns.barplot(x='product_category_name', y='Vendas', hue='Volume', data=VSP_CRJ)
+plt.title('Volume de vendas de SP para RJ por categoria')
+plt.show()
+```
+## Preço médio de produtos mais vendidos é maior em SP
+
+```{python}
+# Calcule o preço medio por produto e por estado dos top 10 produtos mais vendidos e dos top 3 estados vendedores no df_rj e plote numa matrix de calor
+top_10_produtos = df_rj['product_category_name'].value_counts().head(10).index
+top_5_estados = df_rj['seller_state'].value_counts().head(5).index
+df_rj_top_10 = df_rj[df_rj['product_category_name'].isin(top_10_produtos)]
+df_rj_top_10 = df_rj_top_10[df_rj_top_10['seller_state'].isin(top_5_estados)]
+preco_medio = df_rj_top_10.groupby(['product_category_name', 'seller_state'])['price'].mean().unstack()
+sns.heatmap(preco_medio, annot=True, fmt=".2f", cmap='coolwarm')
+plt.show()
+```
+
+# Proposta
+Vemos uma oportunidade de estimular a oferta de produtos de vendedores locais no RJ, visando aumentar a satisfação dos clientes no estado
