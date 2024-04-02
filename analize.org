@@ -27,3 +27,7 @@ Na tabela de pedidos cada observacao tem um ID unico, como esperado.
   > orders$order_id |> length()
   [1] 99441
 #+end_src
+* Lab [2024-03-06 Wed]
+ - Os pedidos de consumidores no RJ tem uma nota media baixa.
+ - Dentre os estados que vendem para o RJ, a nota media das vendas internas eh relativamente alta.
+ - O custo do frete por grama transportada do GO para RJ eh estranhamente alto. Pode haver alguma classe de produto com maior margem de ganho para uma potencial venda local.

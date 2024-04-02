@@ -104,3 +104,179 @@ stopifnot(dim(sellers)[1] == 3095)
 stopifnot(dim(order_items)[1] == 112650)
 ```
 
+# 9 CEPs Unicos
+```{.r .cell-code}
+
+```
+
+# 13 Ordens Distintas
+```{.r .cell-code}
+stopifnot(orders$order_id |> unique() |> length() == 99441)
+```
+Cada registro no banco `orders` parece fazer referencia a uma ordem distinta.
+
+# 14 Clientes Distintos
+```{.r .cell-code}
+stopifnot(customers$customer_id |> unique() |> length() == 99441)
+stopifnot(customers$customer_unique_id |> unique() |> length() == 96096)
+```
+O banco `customers` tem 96096 valores unicos para `customer_unique_id`.
+
+# 15 Vendedores Distintos
+```{.r .cell-code}
+stopifnot(sellers$seller_id |> unique() |> length() == 3095)
+```
+Ha 3095 vendedores na base `sellers`, assumindo que cada `seller_id` identifique um vendedor diferente.
+
+# 16-17 Vendas no Credito e Debito
+A informacao imediatamente disponivel diz respeito aos pagamentos, que contem 4446 referencias repetidas a pedidos:
+```{.r .cell-code}
+stopifnot(
+    dim(order_payments)[1] -
+    order_payments$order_id |> unique() |> length() ==
+    4446)
+```
+
+
+As proporcoes de vendas no credito e debito, sem tratar esses valores repetidos sao:
+ - Credito: 74%
+ - Debito: 1.5%
+
+```{.r .cell-code}
+stopifnot(
+    signif(order_payments |>
+           filter(payment_type == "credit_card") |>
+           count() /
+           dim(order_payments)[1],
+           digits = 3) ==
+    0.739)
+
+stopifnot(
+    signif(order_payments |>
+           filter(payment_type == "debit_card") |>
+           count() /
+           dim(order_payments)[1],
+           digits = 3) ==
+          0.0147)
+```
+
+# 18 Avaliacoes de 1 Estrela
+As avaliacoes com a pior pontuacao possivel constituem 12% da base.
+```{.r .cell-code}
+stopifnot(
+    signif(order_reviews |>
+           filter(review_score == 1) |>
+           count() /
+           dim(order_reviews)[1],
+           digits = 3) ==
+    0.115)
+```
+
+# 19-21 Categorias de Produto
+Ha 74 nomes distintos de categoria de produto na base
+```{.r .cell-code}
+stopifnot(
+    products$product_category_name |> unique() |> length() ==
+    74)
+```
+
+```{.r .cell-code}
+merge(order_items, products, by = "product_id") |>
+    merge(order_reviews, by = "order_id") |>
+    group_by(product_category_name) |>
+    summarise_at(vars(review_score), list(mean=mean)) |>
+    arrange(desc(mean))
+```
+
+As 5 categorias com mais produtos presentes na base sao:
+ - cama mesa banho
+ - beleza saude
+ - esporte lazer
+ - moveis decoracao
+ - informatica acessorios
+ 
+```{.r .cell-code}
+merge(order_items, products, by = "product_id") |>
+    group_by(product_category_name) |>
+    count() |>
+    arrange(desc(n))
+```
+
+# 22 Comentarios
+Ha 40968 comentarios na base, que correspondem a 41% do numero total de comentarios.
+```{.r .cell-code}
+stopifnot(
+    order_reviews |>
+    filter(!is.na(review_comment_message)) |>
+    count() ==
+    40968)
+
+stopifnot(signif(
+    order_reviews |>
+    filter(!is.na(review_comment_message)) |>
+    count() /
+    #
+    order_reviews |>
+    filter(!is.na(review_score)) |>
+    count(),
+    #
+    digits = 3) ==
+    0.413)
+```
+
+# 24 Ordens Entregues
+Ha 96478 pedidos entregues na base, correspondendo a 97% das ordens.
+```{.r .cell-code}
+stopifnot(
+    orders |>
+    filter(order_status == "delivered") |>
+    count() ==
+    96478)
+
+stopifnot(signif(
+    orders |> filter(order_status == "delivered") |> count() /
+    dim(orders)[1],
+    digits = 3) ==
+    0.970)
+```
+
+# 25-26 Processo Pos-Compra
+## Limpeza
+Ha observacoes na base com tempo registrado de entrega, mas sem tempo registrado de aprovacao da compra, o que parece um erro. Essas observacoes nao serao consideradas para a analize do tempo entre aprovacao e entrega de uma compra.
+```{.r .cell-code}
+stopifnot(
+    orders |>
+    filter(!is.na(order_delivered_customer_date) & is.na(order_approved_at)) |>
+    count() !=
+    0)
+```
+
+## Analize
+O tempo medio entre compra e aprovacao de compra eh de 10 horas.
+```{.r .cell-code}
+orders |>
+    filter(!is.na(order_approved_at)) |>
+    mutate(time_to_approval = difftime(order_approved_at, order_purchase_timestamp, units="hours")) |>
+    summarise_at(vars(time_to_approval), list(mean=mean))
+```
+
+O tempo medio entre compra e entrega eh de 13 dias.
+```{.r .cell-code}
+orders |>
+    filter(!is.na(order_delivered_customer_date) & !is.na(order_approved_at)) |>
+    mutate(time_to_delivery = difftime(order_delivered_customer_date,
+                                       order_purchase_timestamp,
+                                       units="days")) |>
+    summarise_at(vars(time_to_delivery), list(mean=mean))
+```
+
+# 27 Previsao de Entrega
+As entregas chegam em media 11 dias antes da data prevista.
+```{.r .cell-code}
+orders |>
+    filter(!is.na(order_delivered_customer_date)) |>
+    mutate(delivery_delay = difftime(order_delivered_customer_date,
+                                     order_estimated_delivery_date,
+                                     units = "days")) |>
+    summarise_at(vars(delivery_delay), list(mean=mean))
+```

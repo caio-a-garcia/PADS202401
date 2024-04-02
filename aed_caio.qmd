@@ -6,7 +6,11 @@ format:
     code-fold: true
 ---
 
-```{.r .code-cell}
+```{r}
+install.packages("naniar",repos = "http://cran.us.r-project.org")
+```
+
+```{r}
 library("tidyverse")
 library("ggplot2")
 library("naniar")
@@ -15,7 +19,7 @@ library("forcats")
 
 # Inicializacao
 
-```{.r .code-cell}
+```{r}
 customers <- readr::read_csv("Dados - Olist/olist_customers_dataset.csv")
 order_payments <- readr::read_csv("Dados - Olist/olist_order_payments_dataset.csv")
 products <- readr::read_csv("Dados - Olist/olist_products_dataset.csv")
@@ -27,10 +31,26 @@ orders <- readr::read_csv("Dados - Olist/olist_orders_dataset.csv")
 product_category_name_translation <- readr::read_csv("Dados - Olist/product_category_name_translation.csv")
 ```
 
+## Tabela Unica
+
+```{r}
+df <- merge(order_items, orders, by = "order_id") |>
+        merge(customers, by = "customer_id") |>
+        merge(sellers, by = "seller_id") |>
+        merge(products, by = "product_id") |>
+        merge(order_reviews, by = "order_id")
+```
+
+## Tabela RJ
+```{r}
+df_rj <- df |> filter(customer_state == "RJ")
+```
 
 # Reviews
 
-```{.r .cell-code}
+```{r}
+#| label: fig-reviews
+
 ggplot(order_reviews, aes(x = review_score)) +
           geom_freqpoly(bins=5)
 ```
@@ -39,7 +59,7 @@ Os reviews de 3 a 5 pontos seguem uma progrecao geometrica, e ha um pico de revi
 
 
 ## Prototipo
-```{.r .cell-code}
+```{r}
 merge(orders, order_reviews, by = "order_id") |>
     merge(customers, by = "customer_id") |>
     select(order_id, order_purchase_timestamp, review_score, customer_state) |>
@@ -67,25 +87,64 @@ merge(orders, order_reviews, by = "order_id") |>
     )
 ```
 
-```{.r .cell-code}
+```{r}
 merge(order_items, sellers, by = "seller_id")
 ```
 
 # Vendas e compras por estado
 
-```{.r .cell-code}
+```{r}
 merge(order_items, sellers, by = "seller_id") |>
     group_by(seller_state) |>
     summarise(total_count=n()) |>
+    arrange(total_count) |>
     print(n = 26)
 ```
 Mais de 70% dos itens vendidos saem do estado de Sao Paulo.
 
-```{.r .cell-code}
+```{r}
 merge(order_items, orders, by = "order_id") |>
     merge(customers, by = "customer_id") |>
     group_by(customer_state) |>
     summarise(total_count=n()) |>
-    print(n=26)
+    arrange(total_count) |>
+    print(n=27)
 ```
 O estado do Rio de Janeiro tem o maior deficit de vendas vs compras dentre todos os estados brasileiros.
+
+# Vendas e compras por estado por volume
+
+```{r}
+merge(order_items, sellers, by = "seller_id") |>
+    group_by(seller_state) |>
+    summarise_at(vars(price), list(total=sum)) |>
+    arrange(total) |>
+    print(n = 26)
+```
+
+
+```{r}
+merge(order_items, orders, by = "order_id") |>
+    merge(customers, by = "customer_id") |>
+    group_by(customer_state) |>
+    summarise_at(vars(price), list(total=sum)) |>
+    arrange(total) |>
+    print(n=27)
+```
+
+
+
+# Compras no RJ
+Para compras feitas no RJ por estado do vendedor.
+```{r}
+df_rj |>
+    group_by(seller_state) |>
+    summarise_at(vars(review_score), list(mean=mean)) |>
+    arrange(mean)
+```
+```{r}
+df_rj |>
+    group_by(seller_state) |>
+    count() |>
+    arrange(n)
+```
