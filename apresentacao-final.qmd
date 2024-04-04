@@ -1,0 +1,27 @@
+---
+title: "Apresenação Final"
+author: "Grupo 2"
+format: 
+  revealjs:
+    navigation-mode: vertical
+jupyter: python3
+---
+
+# Dados
+## Dados Olist
+## Dados externos
+
+# Persona {.incremental}
+- Pedro
+- Carioca
+- Comunidade
+- Vendedor
+
+# Mapa Interativo
+::: {.notes}
+Colocar mapa aqui
+:::
+
+# Solução
+
+# Potencial de Ganho
