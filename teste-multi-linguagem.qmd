@@ -1,0 +1,19 @@
+---
+title: "Teste de Ambiente"
+author: "Caio Garcia"
+format:
+  html:
+    code-fold: true
+---
+
+# Intuito
+Esse arquivo eh usado para testar a interoperabilidade entre Python e R em um arquivo Quarto.
+
+```{python}
+import pandas as pd
+orders = pd.read_csv("Dados - Olist/olist_orders_dataset.csv")
+```
+
+```{r}
+head(py::orders)
+```

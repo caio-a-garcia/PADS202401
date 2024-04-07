@@ -5,6 +5,7 @@
    "r-arrow"
    "r-forcats"
    "r-naniar"
+   "r-reticulate"
 
    "jupyter"
    "python-pandas"
